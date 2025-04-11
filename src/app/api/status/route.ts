@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
 }
 
 function getFileStatus() {
-  const status = Math.random() < 0.1 ? 'completed' : 'failed';
+  const status = Math.random() < 0.3 ? 'completed' : 'failed';
   return {
     status,
     validationErrors: status === 'failed' ? mockValidationErrors[Math.floor(Math.random() * mockValidationErrors.length)] : null
