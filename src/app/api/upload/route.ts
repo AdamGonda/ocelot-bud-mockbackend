@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
           name: (file as any).name || 'unnamed',
           type: file.type,
           size: file.size,
-          status: 'pending',
+          status: { status: 'pending' },
         };
       }
       return { name: 'unknown' };

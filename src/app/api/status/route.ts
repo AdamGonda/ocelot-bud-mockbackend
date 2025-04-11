@@ -2,6 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '~/server/db';
 import { batch } from '~/server/db/schema';
 import { eq } from 'drizzle-orm';
+
+const mockValidationErrors = [
+  {
+    type: 'clinic not exists',
+    field: 'clinicId',
+  },
+  {
+    type: 'invalid email',
+    field: 'email',
+  },
+  {
+    type: 'invalid phone number',
+    field: 'phone',
+  },
+  {
+    type: 'invalid address',
+    field: 'address',
+  },
+];
+
 // CORS headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'http://localhost:8000',
@@ -28,15 +48,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    //  {
-    //   status: 'completed',
-    //   files: [
-    //     {
-    //       name: 'Quartzdevs Freelancer Contract - Adam Gonda - Final.pdf',
-    //       status: 'completed',
-    //     },
-    //   ]
-    // }
     const data = await db.query.batch.findFirst({
       where: eq(batch.id, parseInt(id)),
     });
@@ -81,5 +92,9 @@ export async function GET(request: NextRequest) {
 }
 
 function getFileStatus() {
-  return Math.random() < 0.8 ? 'completed' : 'failed';
+  const status = Math.random() < 0.1 ? 'completed' : 'failed';
+  return {
+    status,
+    validationErrors: status === 'failed' ? mockValidationErrors[Math.floor(Math.random() * mockValidationErrors.length)] : null
+  };
 }
