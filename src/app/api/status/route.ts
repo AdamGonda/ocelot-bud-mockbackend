@@ -1,43 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// Mock data for different statuses
-const mockData = {
-  '0': {
-    status: 'completed',
-    files: [
-      {
-        name: 'Quartzdevs Freelancer Contract - Adam Gonda - Final.pdf',
-        status: 'completed',
-      },
-    //   {
-    //     name: 'file2.txt',
-    //     status: 'failed',
-    //   },
-    //   {
-    //     name: 'file3.txt',
-    //     status: 'completed',
-    //   },
-    ]
-  },
-  '1': {
-    status: 'failed',
-    files: [
-      {
-        name: 'Quartzdevs Freelancer Contract - Adam Gonda - Final.pdf',
-        status: 'completed',
-      },
-    //   {
-    //     name: 'file2.txt',
-    //     status: 'failed',
-    //   },
-    //   {
-    //     name: 'file3.txt',
-    //     status: 'completed',
-    //   },
-    ]
-  },
-};
-
+import { db } from '~/server/db';
+import { batch } from '~/server/db/schema';
+import { eq } from 'drizzle-orm';
 // CORS headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'http://localhost:8000',
@@ -64,8 +28,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get the mock data for the provided ID
-    const data = mockData[id as keyof typeof mockData];
+    //  {
+    //   status: 'completed',
+    //   files: [
+    //     {
+    //       name: 'Quartzdevs Freelancer Contract - Adam Gonda - Final.pdf',
+    //       status: 'completed',
+    //     },
+    //   ]
+    // }
+    const data = await db.query.batch.findFirst({
+      where: eq(batch.id, parseInt(id)),
+    });
 
     // If no data found for the ID
     if (!data) {
@@ -75,8 +49,28 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const isCompleted = data.isDone ? new Date(data.isDone) < new Date() : false;
+
+    if (data.status === 'completed') {
+      return NextResponse.json(data, { headers: corsHeaders });
+    }
+
+    const updateBatch = {
+      ...data,
+      status: isCompleted ? 'completed' : 'pending',
+      files: (data.files as any[]).map((file) => ({
+        ...file,
+        status: getFileStatus(),
+      })),
+    };
+
+    await db.update(batch).set({
+      status: updateBatch.status,
+      files: updateBatch.files,
+    }).where(eq(batch.id, parseInt(id)));
+
     // Return the mock data
-    return NextResponse.json(data, { headers: corsHeaders });
+    return NextResponse.json(updateBatch, { headers: corsHeaders });
   } catch (error) {
     console.error('Error processing request:', error);
     return NextResponse.json(
@@ -84,4 +78,8 @@ export async function GET(request: NextRequest) {
       { status: 500, headers: corsHeaders }
     );
   }
+}
+
+function getFileStatus() {
+  return Math.random() < 0.5 ? 'completed' : 'failed';
 }

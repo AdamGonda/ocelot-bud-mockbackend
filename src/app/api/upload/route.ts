@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { NextRequest, NextResponse } from 'next/server';
-import { posts } from '~/server/db/schema';
+import { batch } from '~/server/db/schema';
 import { db } from '~/server/db';
 
 export async function POST(request: NextRequest) {
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Processed file details:', fileDetails);
 
-    const [result] = await db.insert(posts).values({
+    const [result] = await db.insert(batch).values({
       isDone: new Date(Date.now() + 5000),
       files: fileDetails
     }).returning();

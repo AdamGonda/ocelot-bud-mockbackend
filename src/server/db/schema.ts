@@ -14,11 +14,12 @@ export const createTable = pgTableCreator(
   (name) => `ocelot-bud-mockbackend_${name}`,
 );
 
-export const posts = createTable(
+export const batch = createTable(
   "batch",
   (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
     isDone: d.timestamp({ withTimezone: true }),
+    status: d.text(),
     files: d.jsonb(),
   }),
 );
