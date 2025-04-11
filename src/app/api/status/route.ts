@@ -81,5 +81,5 @@ export async function GET(request: NextRequest) {
 }
 
 function getFileStatus() {
-  return Math.random() < 0.5 ? 'completed' : 'failed';
+  return Math.random() < 0.2 ? 'completed' : 'failed';
 }
